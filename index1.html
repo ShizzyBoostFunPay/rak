@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>QuestMaster - автопрохождение квестов Arizona RP</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%230a0c12'/%3E%3Cpath d='M20,50 L40,30 L60,30 L80,50 L60,70 L40,70 Z' fill='none' stroke='%23c084fc' stroke-width='4'/%3E%3Ccircle cx='50' cy='50' r='8' fill='%2360a5fa'/%3E%3C/svg%3E">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,600;14..32,700;14..32,800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            color: #eef2ff;
+            line-height: 1.5;
+            scroll-behavior: smooth;
+            background: #0a0c12;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* АНИМИРОВАННЫЙ ФОН ИЗ МЕЛКИХ КРАСИВЫХ ЧАСТИЦ */
+        #particles-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            display: block;
+            background: radial-gradient(circle at 30% 20%, #0a0c1a, #020308);
+        }
+
+        .glow-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 70% 30%, rgba(124, 58, 237, 0.12), transparent 70%);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* основной контент */
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 24px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #c084fc, #60a5fa, #34d399);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+
+        .glow {
+            text-shadow: 0 0 12px rgba(96, 165, 250, 0.5);
+        }
+
+        .header {
+            padding: 20px 0;
+            border-bottom: 1px solid rgba(96, 165, 250, 0.2);
+            backdrop-filter: blur(12px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(10, 12, 18, 0.6);
+            transition: all 0.3s;
+        }
+
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            background: linear-gradient(145deg, #a855f7, #3b82f6);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 32px;
+            font-weight: 500;
+        }
+        .nav-links a {
+            text-decoration: none;
+            color: #cbd5e6;
+            transition: 0.2s;
+            position: relative;
+        }
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #a855f7, #3b82f6);
+            transition: width 0.2s;
+        }
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+        .nav-links a:hover {
+            color: #fff;
+        }
+        .btn-outline-light {
+            background: transparent;
+            border: 1px solid #3b82f6;
+            padding: 8px 20px;
+            border-radius: 40px;
+            font-weight: 600;
+            color: #eef2ff;
+            transition: 0.2s;
+            cursor: pointer;
+            backdrop-filter: blur(4px);
+        }
+        .btn-outline-light:hover {
+            background: #3b82f620;
+            border-color: #a855f7;
+            transform: scale(1.02);
+        }
+
+        .btn-primary {
+            background: linear-gradient(95deg, #7c3aed, #2563eb);
+            border: none;
+            padding: 12px 28px;
+            border-radius: 40px;
+            font-weight: 700;
+            font-size: 1rem;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 28px rgba(124, 58, 237, 0.5);
+        }
+        .btn-secondary {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(4px);
+            border: 1px solid #334155;
+            padding: 12px 28px;
+            border-radius: 40px;
+            font-weight: 600;
+            color: #e2e8f0;
+            transition: 0.2s;
+            cursor: pointer;
+        }
+        .btn-secondary:hover {
+            background: #2d3a55;
+            border-color: #60a5fa;
+            transform: translateY(-2px);
+        }
+
+        .hero {
+            padding: 100px 0 60px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 40px;
+            justify-content: space-between;
+        }
+        .hero-content {
+            flex: 1;
+            animation: fadeInUp 0.8s ease-out;
+        }
+        .hero-badge {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(4px);
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-bottom: 20px;
+            border-left: 3px solid #c084fc;
+        }
+        .hero h1 {
+            font-size: 3.4rem;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 20px;
+        }
+        .hero p {
+            font-size: 1.2rem;
+            color: #b9c3d4;
+            max-width: 550px;
+            margin-bottom: 32px;
+        }
+        .hero-stats {
+            display: flex;
+            gap: 24px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+        .stat-item {
+            background: rgba(15, 17, 26, 0.7);
+            backdrop-filter: blur(4px);
+            padding: 8px 18px;
+            border-radius: 50px;
+            border: 1px solid #2d3a5e;
+            font-weight: 500;
+        }
+        .hero-image {
+            flex: 0.8;
+            background: rgba(15, 23, 42, 0.5);
+            backdrop-filter: blur(8px);
+            border-radius: 32px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid rgba(96, 165, 250, 0.3);
+            box-shadow: 0 20px 35px -15px black;
+            animation: fadeInRight 0.8s ease-out;
+        }
+        .code-block {
+            background: #03060cd9;
+            padding: 20px;
+            border-radius: 20px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            text-align: left;
+            color: #86efac;
+            border: 1px solid #1e2a3a;
+            transition: all 0.3s;
+        }
+        .code-block:hover {
+            border-color: #c084fc;
+            box-shadow: 0 0 15px rgba(192,132,252,0.2);
+        }
+
+        section {
+            padding: 70px 0;
+            border-bottom: 1px solid rgba(51, 65, 85, 0.3);
+        }
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 48px;
+        }
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+        }
+        .feature-card {
+            background: rgba(17, 22, 31, 0.6);
+            backdrop-filter: blur(8px);
+            border-radius: 28px;
+            padding: 28px 20px;
+            transition: 0.3s ease;
+            border: 1px solid #1e2a3a;
+        }
+        .feature-card:hover {
+            border-color: #3b82f6;
+            transform: translateY(-8px);
+            background: rgba(19, 26, 38, 0.8);
+            box-shadow: 0 20px 30px -15px rgba(0,0,0,0.5);
+        }
+        .feature-icon {
+            font-size: 2.4rem;
+            margin-bottom: 20px;
+            color: #a855f7;
+        }
+        .feature-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 12px;
+        }
+        .howto-steps {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            justify-content: center;
+        }
+        .step {
+            background: rgba(14, 19, 32, 0.6);
+            backdrop-filter: blur(4px);
+            border-radius: 30px;
+            padding: 28px;
+            flex: 1;
+            min-width: 220px;
+            text-align: center;
+            transition: 0.2s;
+        }
+        .step:hover {
+            transform: scale(1.02);
+            background: rgba(20, 28, 45, 0.8);
+        }
+        .step-num {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            border-radius: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.4rem;
+            margin: 0 auto 20px;
+        }
+        .faq-item {
+            background: rgba(15, 20, 31, 0.6);
+            backdrop-filter: blur(4px);
+            border-radius: 24px;
+            padding: 20px 28px;
+            margin-bottom: 16px;
+            cursor: pointer;
+            transition: 0.2s;
+            border: 1px solid #1f2a3e;
+        }
+        .faq-item:hover {
+            border-color: #60a5fa;
+        }
+        .faq-question {
+            font-weight: 700;
+            font-size: 1.2rem;
+            display: flex;
+            justify-content: space-between;
+        }
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: 0.3s ease;
+            color: #b9c3d4;
+            padding-top: 0;
+        }
+        .faq-item.active .faq-answer {
+            max-height: 300px;
+            padding-top: 16px;
+        }
+        footer {
+            padding: 40px 0;
+            text-align: center;
+            color: #5b6e8c;
+            font-size: 0.85rem;
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeInRight {
+            from { opacity: 0; transform: translateX(30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @media (max-width: 780px) {
+            .hero h1 { font-size: 2.4rem; }
+            .nav-links { display: none; }
+            .container { padding: 0 20px; }
+            .hero { flex-direction: column; text-align: center; }
+            .hero-stats { justify-content: center; }
+            .section-title { font-size: 2rem; }
+        }
+        .warning-badge {
+            background: rgba(44, 26, 46, 0.8);
+            backdrop-filter: blur(4px);
+            border-left: 4px solid #f97316;
+            padding: 12px 20px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            margin-top: 30px;
+        }
+        .telegram-chip {
+            background: #1e293b;
+            border-radius: 60px;
+            padding: 6px 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+    </style>
+</head>
+<body>
+    <!-- АНИМИРОВАННЫЙ ФОН ИЗ МЕЛКИХ КРАСИВЫХ ЧАСТИЦ -->
+    <canvas id="particles-canvas"></canvas>
+    <div class="glow-layer"></div>
+
+    <header class="header">
+        <div class="container nav">
+            <div class="logo">QUESTMASTER<span style="font-size: 0.9rem; color:#60a5fa;">.shizzy</span></div>
+            <div class="nav-links">
+                <a href="#features">Возможности</a>
+                <a href="#howto">Как работает</a>
+                <a href="#faq">FAQ</a>
+            </div>
+            <div>
+                 <a href="https://funpay.com/users/8180891/" class="btn-outline-light">
+    <img src="https://s3-eu-west-1.amazonaws.com/tpd/logos/61c241ad7e4160be1454a768/0x0.png" alt="FunPay" width="18" height="18" style="vertical-align: middle; margin-right: 6px;">
+    ShizzyBoost
+</a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <div class="hero">
+                <div class="hero-content">
+                    <div class="hero-badge"><i class="fas fa-robot"></i>  RakSamp Lite · QuestMaster v.6.6.6</div>
+                    <h1>Автопрохождение <span class="gradient-text">квестов</span> на <br> Arizona RP</h1>
+                    <p>Экономь часы рутины. Скрипт на Lua автоматически выполняет цепочки квестов, собирает награды и фармит валюту. Работает через RakSamp Lite.</p>
+                    <div style="display: flex; gap: 18px; flex-wrap: wrap;">
+                        <a href="#" id="githubDownloadBtn" class="btn-primary"><i class="fab fa-github"></i> Скачать с GitHub</a>
+                    </div>
+                    <div class="hero-stats">
+                        <div class="stat-item"><i class="fas fa-check-circle" style="color:#22c55e;"></i> 6+ квестов/час</div>
+                        <div class="stat-item"><i class="fab fa-telegram"></i> Телеграмм уведомления</div>
+                    </div>
+                    <div class="warning-badge">
+                        <i class="fas fa-exclamation-triangle" style="color:#f97316;"></i>  Использование ботов нарушает правила сервера. Без использования Proxy, велик шанс получить ЧСП Проекта. Используйте на свой страх и риск. Бот создан в ознакомительных целях.
+                    </div>
+                </div>
+                <div class="hero-image">
+                    <div class="code-block">
+                        -- QuestMaster v6.6.6 <br>
+                        -- Настройка: Папка: settings → config.txt<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[general]<br>
+                        password = Пароль с которым бот будет регистрироваться на сервере<br>
+                        nigger = Выбирать тёмный цвет кожи (true/false)<br>
+                        accountformat = Формат в котором бот будет сохранять аккаунты<br><br>
+                        {Server Name} - Название сервера<br>
+         {Server IP} - Айпи сервера<br>
+         {Nick} - Ник бота<br>
+         {Password} - Пароль от аккаунта<br>
+         {Level} - Уровень бота<br>
+         {Money} - Количество денег<br>
+         {GoldPrizes} - Призы из золотой рулетки<br><br>
+                         title = Анимация заголовка окна, может хавать ресурсы компьютера (true/false)<br>
+   usereferal = Регистрироваться на реферала (true/false)<br>
+   usepromocode = Использовать промокод перед сохранением аккаунта (true/false)<br>
+   excengeaz = Обменивать аз койны на опыт (true/false)<br>
+   offlog = Выключить текст в консоли (true/false)<br>
+   piar = Флуд с рекламой канала автора бота (true/false)<br>
+   opengold = Открывать 3 золотые рулетки в последнем квесте (true/false)<br>
+                         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[tp]<br>
+                       timeincar = Задержка телепорта в машине<br>
+   stepincar = Шаг телепорта в машине<br>
+   timeonfoot = Задержка телепорта пешком<br>
+   steponfoot = Шаг телепорта пешком<br>
+   timedriver = Задержка телепорта в автошколе/автобусе<br>
+   stepdriver = Шаг телепорта в автошколе/автобусе<br>
+                         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[telegram]<br>
+                        token = Токен телеграм бота для уведомлений (https://t.me/BotFather -> /newbot)<br>
+   chatid = Ваш айди аккаунта (https://t.me/myidbot -> /getid)<br>
+   quests = Отправлять уведомления с состоянием бота (true/false)<br>
+   save = Отправлять уведомления о сохранении аккаунта (true/false)<br>
+                         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[leave]<br>
+                        dalnoboy = Сохранять аккаунт после прохождения квеста с дальнобоем (true/false)<br>
+   titanvip = Сохранять аккаунт после получения титан вип (true/false)<br>
+   license = Сохранять аккаунт после получения лицензии (true/false)<br>
+   lvl = Сохранять аккаунт после достижения нужного уровня (0 - отключить) <br>
+   money = Сохранять аккаунт после достижения нужного количества денег (0 - отключить) <br>
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[promo/referals]  <br>
+   referals = Ник который боты будут указывать как реферала<br>
+   promocodes = Промокод который боты будут активировать при достижение 5 уровня
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+
+        <section id="features">
+            <div class="container">
+                <h2 class="section-title">Почему <span class="gradient-text">QuestMaster</span> - правильный выбор</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fas fa-tasks"></i></div>
+                        <h3>Полный цикл квестов</h3>
+                        <p>Автоматическое прохождение стартовых квестов (паспорт, ферма, сим-ка, скин, лицензии, такси, автобус, джайкоб).</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fab fa-telegram"></i></div>
+                        <h3>Telegram уведломления</h3>
+                        <p>Логируется каждое действие, заработок, сохранение и смена аккаунта.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
+                        <h3>Автосохранение состояния</h3>
+                        <p>В момент срабатывания лимита, который вы указали, система мгновенно сохраняет текущий аккаунт,<br>Server:Login:Password:lvl:Money.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fas fa-redo-alt"></i></div>
+                        <h3>Ротация аккаунтов</h3>
+                        <p>После успешного сохранения автоматически создаётся новый аккаунт, готовый к работе без простоев и ручного вмешательства.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="howto">
+            <div class="container">
+                <h2 class="section-title">🚀 Запуск за <span class="gradient-text">3 минуты</span></h2>
+                <div class="howto-steps">
+                    <div class="step"><div class="step-num">1</div><h3>Установи RakSamp Lite</h3><p>Скачай последнюю версию эмулятора клиента SA-MP. Настрой прокси для многопоточного фарма.</p></div>
+                    <div class="step"><div class="step-num">3</div><h3>Настрой параметры</h3><p>Открой: settings выбери settings.ini настрой пароль, телеграмм уведомления и т.д.</p></div>
+                    <div class="step"><div class="step-num">4</div><h3>Запуск & забыл</h3><p>Открой: RakLaunch Lite - выбери сервер и сгенерируй ник. Либо запусти все сервера одним кликом: start all servers.bat.</p></div>
+                </div>
+                <div style="background: rgba(10,15,24,0.7); backdrop-filter: blur(4px); border-radius: 28px; padding: 24px; margin-top: 40px; text-align: center;">
+                    <i class="fas fa-code"></i> Важные файлы: <code style="background:#1e293b; padding: 6px 12px; border-radius: 20px;">main.lua</code> <code style="background:#1e293b; padding: 6px 12px; border-radius: 20px;">settings.ini</code> <code style="background:#1e293b; padding: 6px 12px; border-radius: 20px;">captcha.lua</code> <code style="background:#1e293b; padding: 6px 12px; border-radius: 20px;">int fix.lua</code>
+                </div>
+            </div>
+        </section>
+
+        <section id="faq">
+            <div class="container">
+                <h2 class="section-title">Частые вопросы</h2>
+                <div class="faq-list">
+                    <div class="faq-item"><div class="faq-question">❓ Не забанят ли меня за использование бота? <i class="fas fa-chevron-down"></i></div><div class="faq-answer">Администрация Arizona RP активно борется с читами. Данный бот RAGE, так-что баны будут частые.</div></div>
+                    <div class="faq-item"><div class="faq-question">⚙️ Работает ли с RakSamp Lite? <i class="fas fa-chevron-down"></i></div><div class="faq-answer">Да, QuestMaster разработан именно для RakSamp Lite.</div></div>
+                    <div class="faq-item"><div class="faq-question">🎮 Какие квесты автоматизированы? <i class="fas fa-chevron-down"></i></div><div class="faq-answer">Стартовая цепочка: паспорт, ферма, сим-карта, одежда, лицензии и т.д. включительно до золотой рулетки.</div></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p><i class="fas fa-skull-crosswalk"></i>  Данный материал создан в образовательных целях. использование ботов может привести к блокировке аккаунта. Вы предупреждены.</p>
+            <p style="margin-top: 12px;">© 2026 QuestMaster | Не официальный софт Arizona RP. Все права на игровой контент принадлежат разработчикам.</p>
+        </div>
+    </footer>
+
+    <script>
+        // КРАСИВЫЕ МЕЛКИЕ ЧАСТИЦЫ (уменьшен размер, добавлено свечение и плавность)
+        const canvas = document.getElementById('particles-canvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        let particles = [];
+        const PARTICLE_COUNT = 240; // больше частиц, но они мелкие
+        let mouseX = null, mouseY = null;
+
+        function resizeCanvas() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+        }
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.size = Math.random() * 1.8 + 0.6; // очень мелкие 0.6 - 2.4px
+                this.speedX = (Math.random() - 0.5) * 0.28;
+                this.speedY = (Math.random() - 0.5) * 0.22;
+                this.alpha = Math.random() * 0.45 + 0.2;
+                // оттенки от голубого до фиолетового и нежно-розового
+                const hue = Math.random() * 100 + 220; // 220-320
+                this.rgbColor = `hsla(${hue}, 80%, 70%, ${this.alpha})`;
+                this.glowSize = this.size * 1.2;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                if (this.x < 0) this.x = width;
+                if (this.x > width) this.x = 0;
+                if (this.y < 0) this.y = height;
+                if (this.y > height) this.y = 0;
+
+                // легкое притяжение к мыши (для интерактива)
+                if (mouseX !== null && mouseY !== null) {
+                    const dx = mouseX - this.x;
+                    const dy = mouseY - this.y;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+                    if (dist < 140) {
+                        const force = (140 - dist) / 140 * 0.25;
+                        this.x -= dx * force * 0.018;
+                        this.y -= dy * force * 0.018;
+                    }
+                }
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = this.rgbColor;
+                ctx.fill();
+                // мягкое свечение
+                ctx.shadowBlur = 4;
+                ctx.shadowColor = "rgba(96, 165, 250, 0.5)";
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            }
+        }
+
+        function initParticles() {
+            particles = [];
+            for (let i = 0; i < PARTICLE_COUNT; i++) {
+                particles.push(new Particle());
+            }
+        }
+
+        function animateParticles() {
+            if (!ctx) return;
+            ctx.clearRect(0, 0, width, height);
+            // эффект "мерцания" и trailing
+            ctx.fillStyle = "rgba(5, 7, 12, 0.12)";
+            ctx.fillRect(0, 0, width, height);
+            
+            for (let p of particles) {
+                p.update();
+                p.draw();
+            }
+            // соединяем близкие частицы тонкими линиями для эстетики
+            ctx.beginPath();
+            ctx.strokeStyle = "rgba(120, 150, 250, 0.12)";
+            ctx.lineWidth = 0.4;
+            for (let i = 0; i < particles.length; i++) {
+                for (let j = i + 1; j < particles.length; j++) {
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+                    if (dist < 65) {
+                        ctx.beginPath();
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+            requestAnimationFrame(animateParticles);
+        }
+
+        window.addEventListener('resize', () => {
+            resizeCanvas();
+            initParticles();
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+        });
+        window.addEventListener('mouseleave', () => {
+            mouseX = null;
+            mouseY = null;
+        });
+
+        resizeCanvas();
+        initParticles();
+        animateParticles();
+
+        // Кнопка скачивания с GitHub (демо-ссылка)
+        const githubBtn = document.getElementById('githubDownloadBtn');
+        const githubFooterLink = document.getElementById('githubFooterLink');
+        
+        function handleGitHubClick(e) {
+            e.preventDefault();
+            
+            // в реальном проекте здесь была бы прямая ссылка на raw-файл или релиз
+            window.open('https://github.com/ShizzyBoostFunPay/QuestMaster', '_blank');
+        }
+        
+        if (githubBtn) githubBtn.addEventListener('click', handleGitHubClick);
+        if (githubFooterLink) githubFooterLink.addEventListener('click', handleGitHubClick);
+
+        // FAQ аккордеон
+        const faqs = document.querySelectorAll('.faq-item');
+        faqs.forEach(item => {
+            const q = item.querySelector('.faq-question');
+            q.addEventListener('click', () => {
+                const isActive = item.classList.contains('active');
+                faqs.forEach(f => f.classList.remove('active'));
+                if (!isActive) item.classList.add('active');
+            });
+        });
+        
+        // Плавный скролл
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                const href = this.getAttribute('href');
+                if(href === "#" || href === "" || href === "#github-demo") return;
+                const target = document.querySelector(href);
+                if(target) {
+                    e.preventDefault();
+                    target.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+        
+    </script>
+</body>
+</html>
